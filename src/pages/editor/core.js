@@ -2,6 +2,10 @@
 import { throttle } from 'lodash-es'
 import { v4 as uuid } from 'uuid';
 import emitter from "@/pages/editor/emitter";
+import downFile from "@/pages/editor/download";
+
+
+
 export class Editor {
     constructor(canvasElement, workspaceEl, options) {
         this.options = options
@@ -45,7 +49,10 @@ export class Editor {
             id: 'workspace',
             width: width,
             height: height,
+            fill: 'transparent',
+            selectable: false
         })
+        this.canvas.add(this.workspace)
         this.canvas.clipPath = this.workspace
         this.canvas.requestRenderAll()
     }
@@ -216,23 +223,11 @@ export class Editor {
         this._bindWheel()
 
         this.canvas.on('mouse:over', opt => {
-            if (opt.target) {
-                const target = opt.target
-                target.setControlVisible('tl', true) // 显示左上角的控制点
-                target.setControlVisible('tr', true) // 显示右上角的控制点
-                target.setControlVisible('bl', true) // 显示左下角的控制点
-                target.setControlVisible('br', true) // 显示右下角的控制点
-                target.setControlVisible('ml', true) // 显示左侧中间的控制点
-                target.setControlVisible('mt', true) // 显示顶部中间的控制点
-                target.setControlVisible('mr', true) // 显示右侧中间的控制点
-                target.setControlVisible('mb', true) // 显示底部中间的控制点
-                target.setControlVisible('mtr', true) // 显示旋转控制点
 
-                this.canvas.renderAll()
-            }
         })
 
         this.canvas.on('mouse:out', opt => {
+            console.log('12312')
             // opt.target?.set({
             //   stroke: null,
             //   strokeWidth: 0,
@@ -241,7 +236,7 @@ export class Editor {
             // this.canvas.renderAll()
         })
 
-        this.canvas.on('selected', opt => {
+        this.canvas.on('selection:updated', opt => {
             console.log(123131)
             emitter.emit('selected', opt)
             // opt.target?.set({
@@ -304,6 +299,27 @@ export class Editor {
         const center = this.canvas.getCenter()
         this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoomRatio < 0 ? 0.01 : zoomRatio)
     }
+    _getSaveOption() {
+        const workspace = this.canvas
+            .getObjects()
+            .find((item) => item.id === 'workspace');
+        const { left, top, width, height } = workspace;
+        const option = {
+            name: 'New Image',
+            format: 'png',
+            quality: 1,
+            width,
+            height,
+            left,
+            top,
+        };
+        return option;
+    }
 
-    export() {}
+    saveImg() {
+        const option = this._getSaveOption();
+        this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+        const dataUrl = this.canvas.toDataURL(option);
+        downFile(dataUrl, 'png');
+    }
 }

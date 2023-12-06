@@ -8,7 +8,7 @@
         v-model="height"
       />
       <button>确定</button>
-      <button>导出</button>
+      <button @click="handleExport">导出</button>
       <button @click="handleClone">复制</button>
     </div>
     <div ref="workspace" class="workspace">
@@ -40,6 +40,9 @@ export default {
     handleClone() {
       this.editor.clone();
     },
+    handleExport() {
+      this.editor.saveImg()
+    }
   },
   mounted() {
     this.editor = new Editor(this.$refs.canvas, this.$refs.workspace, {

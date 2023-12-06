@@ -322,4 +322,16 @@ export class Editor {
         const dataUrl = this.canvas.toDataURL(option);
         downFile(dataUrl, 'png');
     }
+
+    /**
+     * @description 翻转
+     * @param type X | Y
+     */
+    flip(type) {
+        const activeObject = this.canvas.getActiveObject();
+        if (activeObject) {
+            activeObject.set(`flip${type}`, !activeObject[`flip${type}`]).setCoords();
+            this.canvas.requestRenderAll();
+        }
+    }
 }

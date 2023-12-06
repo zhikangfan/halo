@@ -10,6 +10,8 @@
       <button>确定</button>
       <button @click="handleExport">导出</button>
       <button @click="handleClone">复制</button>
+      <button @click="handleFlip('X')">水平翻转</button>
+      <button @click="handleFlip('Y')">竖直翻转</button>
     </div>
     <div ref="workspace" class="workspace">
       <canvas ref="canvas"></canvas>
@@ -42,6 +44,9 @@ export default {
     },
     handleExport() {
       this.editor.saveImg()
+    },
+    handleFlip(type) {
+      this.editor.flip(type)
     }
   },
   mounted() {

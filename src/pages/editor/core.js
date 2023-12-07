@@ -37,6 +37,7 @@ export class Editor {
         this._initResizeObserve()
         this.bindEvent()
         this._history()
+        this.state = this.canvas.toJSON()
     }
 
     /**
@@ -190,7 +191,6 @@ export class Editor {
         const height = workspaceEl.offsetHeight
         this.canvas.setWidth(width)
         this.canvas.setHeight(height)
-        console.log(this.bg)
         // this.bg.setWidth(width)
         // this.bg.setHeight(height)
         const center = this.canvas.getCenter()
@@ -264,18 +264,6 @@ export class Editor {
         })
 
         this.canvas.on('mouse:out', opt => {
-            console.log('12312')
-            // opt.target?.set({
-            //   stroke: null,
-            //   strokeWidth: 0,
-            //   strokeUniform: true
-            // })
-            // this.canvas.renderAll()
-        })
-
-        this.canvas.on('selection:updated', opt => {
-            console.log(123131)
-            this._emit('selected', opt)
             // opt.target?.set({
             //   stroke: null,
             //   strokeWidth: 0,
@@ -383,6 +371,7 @@ export class Editor {
             this.redoList = []
             const canvasJSON = JSON.stringify(this.canvas)
             this.state = canvasJSON
+
         }
     }
 
@@ -407,24 +396,24 @@ export class Editor {
         })
     }
 
-
+    // 上一步
     undo() {
         if (this.active) return
-        console.log(this.undoList, '---redolist')
         if (this.undoList.length > 1) {
             const lastJSON = this.undoList.pop()
             if (!lastJSON) {
                 return
             }
             this.redoList.push(this.state)
+            console.log(this.redoList, '---undo')
             this._reply(lastJSON)
         }
     }
-
+    // 下一步
     redo() {
         if (this.active) return
+        console.log(this.redoList, '---')
         const lastJSON = this.redoList.pop()
-        console.log(this.redoList, '---redolist')
         if (!lastJSON) {
             return
         }
@@ -435,8 +424,8 @@ export class Editor {
     _reply(lastJSON) {
         this.state = lastJSON
         this.active = true
-        console.log()
-        this.canvas.loadFromJSON(lastJSON).then(() => {
+        this.canvas.loadFromJSON(lastJSON, () => {
+            this.canvas.renderAll()
             this.active = false
             this._historyChangeEvent()
         })

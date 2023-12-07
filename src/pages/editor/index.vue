@@ -55,13 +55,13 @@ export default {
       this.editor.flip(type)
     },
     handlePrev() {
-
-    },
-    handleNext() {
       this.editor.undo()
     },
-    handleRedo() {
+    handleNext() {
       this.editor.redo()
+    },
+    handleRedo() {
+
     },
     handleBig() {
       this.editor.big()

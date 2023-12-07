@@ -27,8 +27,7 @@
 </template>
 
 <script>
-import { Editor } from "./core";
-import emitter from "@/pages/editor/emitter";
+import { Editor, EditorEvent } from "./core";
 
 export default {
   name: "EditorPage",
@@ -75,22 +74,21 @@ export default {
     }
   },
   mounted() {
-    emitter.on('zoom', (zoom) => {
-      document.querySelector('#zoomValue').innerText = Math.floor(zoom * 100) + '%'
-    })
+
+
     this.editor = new Editor(this.$refs.canvas, this.$refs.workspace, {
       source: "http://localhost:8080/test1a.jpg",
       width: 500,
       height: 500,
     });
-
-    emitter.on("selected", (opt) => {
-      console.log(opt, "---监听到了");
-    });
+    // 监听zoom变化
+    this.editor.on(EditorEvent.CHANGE_ZOOM, (zoom) => {
+      document.querySelector('#zoomValue').innerText = Math.floor(zoom * 100) + '%'
+    })
   },
   beforeDestroy() {
     // clearing all events
-    emitter.all.clear()
+
   },
 };
 </script>

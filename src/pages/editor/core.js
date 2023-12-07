@@ -1,10 +1,14 @@
 // import control, { rotateIcon } from '@/core/control'
 import { throttle } from 'lodash-es'
 import { v4 as uuid } from 'uuid';
-import emitter from "@/pages/editor/emitter";
+import mitt from 'mitt'
 import downFile from "@/pages/editor/download";
 
+export const EditorEvent = {
+    CHANGE_ZOOM: 'change:zoom',
+    RESIZE: 'resize',
 
+}
 
 export class Editor {
     constructor(canvasElement, workspaceEl, options) {
@@ -12,6 +16,7 @@ export class Editor {
         this.canvasElement = canvasElement
         this.workspaceEl = workspaceEl
         this.canvas = this.createEditor(canvasElement, workspaceEl?.offsetWidth, workspaceEl?.offsetHeight)
+        this.emitter = mitt()
         // control()
         this.init({
             width: options.width,
@@ -185,7 +190,7 @@ export class Editor {
         // this.bg.setHeight(height)
         const center = this.canvas.getCenter()
         this.canvas.setViewportTransform(fabric.iMatrix.concat())
-        emitter.emit('zoom', scale)
+        this._emit(EditorEvent.CHANGE_ZOOM, scale)
         this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), scale)
         if (!this.workspace) return
         this.setCenterFromObject(this.workspace)
@@ -210,6 +215,28 @@ export class Editor {
         this.workspace.set('width', width)
         this.workspace.set('height', height)
         this.auto()
+    }
+    _emit(type, ...args) {
+        const condition = Object.keys(EditorEvent).includes(type) || Object.values(EditorEvent).includes(type)
+        if (condition) {
+            this.emitter.emit(type, args)
+        }
+
+    }
+    on(type, handler) {
+        const condition = (Object.keys(EditorEvent).includes(type) || Object.values(EditorEvent).includes(type)) && typeof handler === 'function'
+        if (condition) {
+            this.emitter.on(type, handler)
+        }
+    }
+    off(type, handler) {
+        const condition = (Object.keys(EditorEvent).includes(type) || Object.values(EditorEvent).includes(type)) && typeof handler === 'function'
+        if (condition) {
+            this.emitter.off(type, handler)
+        }
+    }
+    clearAllEditorEvent() {
+        this.emitter.all.clear()
     }
 
     /**
@@ -239,7 +266,7 @@ export class Editor {
 
         this.canvas.on('selection:updated', opt => {
             console.log(123131)
-            emitter.emit('selected', opt)
+            this._emit('selected', opt)
             // opt.target?.set({
             //   stroke: null,
             //   strokeWidth: 0,
@@ -288,7 +315,7 @@ export class Editor {
         let zoomRatio = this.canvas.getZoom()
         zoomRatio += 0.05
         const center = this.canvas.getCenter()
-        emitter.emit('zoom', zoomRatio)
+        this._emit(EditorEvent.CHANGE_ZOOM, zoomRatio)
         this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoomRatio)
     }
 
@@ -300,7 +327,7 @@ export class Editor {
         zoomRatio -= 0.05
         const center = this.canvas.getCenter()
         zoomRatio = zoomRatio < 0 ? 0.01 : zoomRatio
-        emitter.emit('zoom', zoomRatio)
+        this._emit(EditorEvent.CHANGE_ZOOM, zoomRatio)
         this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoomRatio)
     }
     _getSaveOption() {

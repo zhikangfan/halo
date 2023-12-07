@@ -1,22 +1,25 @@
 // import control, { rotateIcon } from '@/core/control'
-import { throttle } from 'lodash-es'
-import { v4 as uuid } from 'uuid';
+import {throttle} from 'lodash-es'
+import {v4 as uuid} from 'uuid';
 import mitt from 'mitt'
 import downFile from "@/pages/editor/download";
 
 export const EditorEvent = {
     CHANGE_ZOOM: 'change:zoom',
     RESIZE: 'resize',
+    HISTORY_CHANGED: 'history:changed'
 
 }
 
 export class Editor {
+
     constructor(canvasElement, workspaceEl, options) {
         this.options = options
         this.canvasElement = canvasElement
         this.workspaceEl = workspaceEl
         this.canvas = this.createEditor(canvasElement, workspaceEl?.offsetWidth, workspaceEl?.offsetHeight)
         this.emitter = mitt()
+
         // control()
         this.init({
             width: options.width,
@@ -25,7 +28,7 @@ export class Editor {
         })
     }
 
-    init({ width, height, src }) {
+    init({width, height, src}) {
         this.createWorkspace(width, height)
         this.createBackground(width, height)
         this.createImg(src)
@@ -33,6 +36,7 @@ export class Editor {
         this.auto()
         this._initResizeObserve()
         this.bindEvent()
+        this._history()
     }
 
     /**
@@ -80,6 +84,7 @@ export class Editor {
         });
 
     }
+
     // 创建背景
     createBackground(width, height) {
         this.background = new fabric.Rect({
@@ -117,7 +122,7 @@ export class Editor {
      * @param {Object} obj 指定的对象
      */
     setCenterFromObject(obj) {
-        const { canvas } = this
+        const {canvas} = this
         const objCenter = obj.getCenterPoint()
         const viewportTransform = canvas.viewportTransform
         if (canvas.width === undefined || canvas.height === undefined || !viewportTransform) return
@@ -180,7 +185,7 @@ export class Editor {
 
 
     setZoomAuto(scale) {
-        const { workspaceEl } = this
+        const {workspaceEl} = this
         const width = workspaceEl.offsetWidth
         const height = workspaceEl.offsetHeight
         this.canvas.setWidth(width)
@@ -216,6 +221,7 @@ export class Editor {
         this.workspace.set('height', height)
         this.auto()
     }
+
     _emit(type, ...args) {
         const condition = Object.keys(EditorEvent).includes(type) || Object.values(EditorEvent).includes(type)
         if (condition) {
@@ -223,18 +229,21 @@ export class Editor {
         }
 
     }
+
     on(type, handler) {
         const condition = (Object.keys(EditorEvent).includes(type) || Object.values(EditorEvent).includes(type)) && typeof handler === 'function'
         if (condition) {
             this.emitter.on(type, handler)
         }
     }
+
     off(type, handler) {
         const condition = (Object.keys(EditorEvent).includes(type) || Object.values(EditorEvent).includes(type)) && typeof handler === 'function'
         if (condition) {
             this.emitter.off(type, handler)
         }
     }
+
     clearAllEditorEvent() {
         this.emitter.all.clear()
     }
@@ -244,7 +253,7 @@ export class Editor {
      * @param color
      */
     setBackground(color) {
-        this.background.set({ fill: color })
+        this.background.set({fill: color})
     }
 
     bindEvent() {
@@ -302,7 +311,7 @@ export class Editor {
             zoom *= 0.999 ** delta
             if (zoom > 20) zoom = 20
             if (zoom < 0.01) zoom = 0.01
-            this.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom)
+            this.zoomToPoint({x: opt.e.offsetX, y: opt.e.offsetY}, zoom)
             opt.e.preventDefault()
             opt.e.stopPropagation()
         })
@@ -330,11 +339,12 @@ export class Editor {
         this._emit(EditorEvent.CHANGE_ZOOM, zoomRatio)
         this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoomRatio)
     }
+
     _getSaveOption() {
         const workspace = this.canvas
             .getObjects()
             .find((item) => item.id === 'workspace');
-        const { left, top, width, height } = workspace;
+        const {left, top, width, height} = workspace;
         const option = {
             name: 'New Image',
             format: 'png',
@@ -364,5 +374,76 @@ export class Editor {
             activeObject.set(`flip${type}`, !activeObject[`flip${type}`]).setCoords();
             this.canvas.requestRenderAll();
         }
+    }
+
+    _save() {
+        if (this.state) {
+            const json = this.state
+            this.undoList.push(json)
+            this.redoList = []
+            const canvasJSON = JSON.stringify(this.canvas)
+            this.state = canvasJSON
+        }
+    }
+
+    _history() {
+
+        this.redoList = []
+        this.undoList = []
+        this.state = ''
+        this.active = false
+
+        this.canvas.on({
+            'object:added': (event) => this._save(event),
+            'object:modified': (event) => this._save(event),
+            'selection:updated': (event) => this._save(event),
+        });
+    }
+
+    _historyChangeEvent() {
+        this._emit(EditorEvent.HISTORY_CHANGED, {
+            hasUndo: this.undoList.length > 1,
+            hasRedo: this.redoList.length > 0
+        })
+    }
+
+
+    undo() {
+        if (this.active) return
+        console.log(this.undoList, '---redolist')
+        if (this.undoList.length > 1) {
+            const lastJSON = this.undoList.pop()
+            if (!lastJSON) {
+                return
+            }
+            this.redoList.push(this.state)
+            this._reply(lastJSON)
+        }
+    }
+
+    redo() {
+        if (this.active) return
+        const lastJSON = this.redoList.pop()
+        console.log(this.redoList, '---redolist')
+        if (!lastJSON) {
+            return
+        }
+        this.undoList.push(this.state)
+        this._reply(lastJSON)
+    }
+
+    _reply(lastJSON) {
+        this.state = lastJSON
+        this.active = true
+        console.log()
+        this.canvas.loadFromJSON(lastJSON).then(() => {
+            this.active = false
+            this._historyChangeEvent()
+        })
+    }
+
+    clear() {
+        this.redoList = []
+        this.undoList = []
     }
 }

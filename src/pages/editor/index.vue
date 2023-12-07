@@ -58,10 +58,10 @@ export default {
 
     },
     handleNext() {
-
+      this.editor.undo()
     },
     handleRedo() {
-
+      this.editor.redo()
     },
     handleBig() {
       this.editor.big()

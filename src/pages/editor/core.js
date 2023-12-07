@@ -185,6 +185,7 @@ export class Editor {
         // this.bg.setHeight(height)
         const center = this.canvas.getCenter()
         this.canvas.setViewportTransform(fabric.iMatrix.concat())
+        emitter.emit('zoom', scale)
         this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), scale)
         if (!this.workspace) return
         this.setCenterFromObject(this.workspace)
@@ -287,6 +288,7 @@ export class Editor {
         let zoomRatio = this.canvas.getZoom()
         zoomRatio += 0.05
         const center = this.canvas.getCenter()
+        emitter.emit('zoom', zoomRatio)
         this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoomRatio)
     }
 
@@ -297,7 +299,9 @@ export class Editor {
         let zoomRatio = this.canvas.getZoom()
         zoomRatio -= 0.05
         const center = this.canvas.getCenter()
-        this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoomRatio < 0 ? 0.01 : zoomRatio)
+        zoomRatio = zoomRatio < 0 ? 0.01 : zoomRatio
+        emitter.emit('zoom', zoomRatio)
+        this.canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoomRatio)
     }
     _getSaveOption() {
         const workspace = this.canvas

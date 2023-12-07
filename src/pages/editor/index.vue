@@ -12,6 +12,13 @@
       <button @click="handleClone">复制</button>
       <button @click="handleFlip('X')">水平翻转</button>
       <button @click="handleFlip('Y')">竖直翻转</button>
+      <button @click="handlePrev">上一步</button>
+      <button @click="handleNext">下一步</button>
+      <button @click="handleRedo">重做</button>
+      <button @click="handleBig">放大</button>
+      <span id="zoomValue">0</span>
+      <button @click="handleSmall">缩小</button>
+      <button @click="handleMove">移动</button>
     </div>
     <div ref="workspace" class="workspace">
       <canvas ref="canvas"></canvas>
@@ -47,9 +54,30 @@ export default {
     },
     handleFlip(type) {
       this.editor.flip(type)
+    },
+    handlePrev() {
+
+    },
+    handleNext() {
+
+    },
+    handleRedo() {
+
+    },
+    handleBig() {
+      this.editor.big()
+    },
+    handleSmall() {
+      this.editor.small()
+    },
+    handleMove() {
+
     }
   },
   mounted() {
+    emitter.on('zoom', (zoom) => {
+      document.querySelector('#zoomValue').innerText = Math.floor(zoom * 100) + '%'
+    })
     this.editor = new Editor(this.$refs.canvas, this.$refs.workspace, {
       source: "http://localhost:8080/test1a.jpg",
       width: 500,

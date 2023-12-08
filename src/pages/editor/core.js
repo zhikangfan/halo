@@ -19,6 +19,13 @@ export class Editor {
         this.workspaceEl = workspaceEl
         this.canvas = this.createEditor(canvasElement, workspaceEl?.offsetWidth, workspaceEl?.offsetHeight)
         this.emitter = mitt()
+        this.state = {
+            saveLen: 0, // 保存每一步的数据 saveOperateList 的长度
+            deleLen: 0, // 需要删除每一步的数据 deleteOperateList 的长度
+            operIndex: -1 // 操作的 Index 的值
+        }
+        this.saveOperateList = [] // 保存的数据，存的值为每一步的 json 数据
+        this.deleteOperateList = [] // 需要删除每一步的数据列表，存的值为 saveOperateList 的每一步的 index 的值
 
         // control()
         this.init({
@@ -37,7 +44,6 @@ export class Editor {
         this._initResizeObserve()
         this.bindEvent()
         this._history()
-        this.state = this.canvas.toJSON()
     }
 
     /**
@@ -105,6 +111,7 @@ export class Editor {
             })
             this.canvas.add(oImg)
             this.canvas.renderAll()
+            this._save() // 图片加载好后保存一次
         })
     }
 
@@ -365,74 +372,80 @@ export class Editor {
     }
 
     _save() {
-        if (this.state) {
-            const json = this.state
-            this.undoList.push(json)
-            this.redoList = []
-            const canvasJSON = JSON.stringify(this.canvas)
-            this.state = canvasJSON
-
+        const json = this.canvas.toJSON()
+        if (this.state.deleLen > 0) {
+            this.deleteOperateList.some(item => {
+                this.saveOperateList[item].del = true
+            })
+            this.saveOperateList = this.saveOperateList.filter(item => {
+                return !item.del
+            })
+            this.deleteOperateList = []
+            this.saveOperateList.push(json)
+            this.state.operIndex = this.saveOperateList.length - 1
+        } else {
+            this.saveOperateList.push(json)
+            this.state.operIndex += 1
         }
+        this.state.saveLen = this.saveOperateList.length
+        this.state.deleLen = this.deleteOperateList.length
+
+        this._historyChangeEvent()
     }
 
     _history() {
-
-        this.redoList = []
-        this.undoList = []
-        this.state = ''
-        this.active = false
-
         this.canvas.on({
-            'object:added': (event) => this._save(event),
-            'object:modified': (event) => this._save(event),
-            'selection:updated': (event) => this._save(event),
+            // 'object:added': () => this._save(),
+            'object:modified': () => this._save(),
+            // 'selection:updated': () => this._save(),
         });
     }
 
     _historyChangeEvent() {
         this._emit(EditorEvent.HISTORY_CHANGED, {
-            hasUndo: this.undoList.length > 1,
-            hasRedo: this.redoList.length > 0
+            hasUndo: this.state.operIndex > 0,
+            hasRedo: this.state.operIndex + 1 >= this.saveOperateList.length
         })
     }
 
     // 上一步
     undo() {
-        if (this.active) return
-        if (this.undoList.length > 1) {
-            const lastJSON = this.undoList.pop()
-            if (!lastJSON) {
-                return
+        if (this.state.operIndex > 0) {
+            this.canvas.loadFromJSON(this.saveOperateList[this.state.operIndex - 1]).renderAll()
+            if (this.deleteOperateList.includes(this.state.operIndex - 1)) {
+
+            } else {
+                this.deleteOperateList.push(this.state.operIndex)
+                this.state.operIndex -= 1
             }
-            this.redoList.push(this.state)
-            console.log(this.redoList, '---undo')
-            this._reply(lastJSON)
         }
+        this.state.saveLen = this.saveOperateList.length
+        this.state.deleLen = this.deleteOperateList.length
     }
     // 下一步
     redo() {
-        if (this.active) return
-        console.log(this.redoList, '---')
-        const lastJSON = this.redoList.pop()
-        if (!lastJSON) {
+        if (this.state.operIndex + 1 >= this.saveOperateList.length) {
             return
         }
-        this.undoList.push(this.state)
-        this._reply(lastJSON)
-    }
+        this.canvas.loadFromJSON(this.saveOperateList[this.state.operIndex + 1]).renderAll()
+        if (this.deleteOperateList.includes(this.state.operIndex + 1)) {
+            const index = this.deleteOperateList.indexOf(this.state.operIndex + 1)
+            this.deleteOperateList.splice(index, 1)
+        } else {
 
-    _reply(lastJSON) {
-        this.state = lastJSON
-        this.active = true
-        this.canvas.loadFromJSON(lastJSON, () => {
-            this.canvas.renderAll()
-            this.active = false
-            this._historyChangeEvent()
-        })
+        }
+        this.state.operIndex = this.state.operIndex + 1
+        this.state.saveLen = this.saveOperateList.length
+        this.state.deleLen = this.deleteOperateList.length
     }
+    // 重做
+    redoAll() {
+        this.deleteOperateList = []
+        this.saveOperateList = [this.saveOperateList.shift()]
+        this.state.operIndex = 0
+        this.state.saveLen = this.saveOperateList.length
+        this.state.deleLen = this.deleteOperateList.length
+        this.canvas.loadFromJSON(this.saveOperateList[this.state.operIndex]).renderAll()
 
-    clear() {
-        this.redoList = []
-        this.undoList = []
     }
 }

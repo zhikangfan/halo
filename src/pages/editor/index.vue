@@ -61,7 +61,7 @@ export default {
       this.editor.redo()
     },
     handleRedo() {
-
+      this.editor.redoAll()
     },
     handleBig() {
       this.editor.big()
@@ -84,6 +84,9 @@ export default {
     // 监听zoom变化
     this.editor.on(EditorEvent.CHANGE_ZOOM, (zoom) => {
       document.querySelector('#zoomValue').innerText = Math.floor(zoom * 100) + '%'
+    })
+    this.editor.on(EditorEvent.HISTORY_CHANGED, (res) => {
+      console.log(res, '----')
     })
   },
   beforeDestroy() {

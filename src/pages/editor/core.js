@@ -448,4 +448,63 @@ export class Editor {
         this.canvas.loadFromJSON(this.saveOperateList[this.state.operIndex]).renderAll()
 
     }
+
+    brush1() {
+        let img = new Image();
+        img.src = this.options.source
+
+        // var texturePatternBrush = new fabric.PatternBrush(this.canvas);
+        // texturePatternBrush.source = img;
+
+        img.onload = () => {
+            // this.canvas.contextTop.globalCompositeOperation = 'destination-in'
+            let texturePatternBrush = new fabric.PatternBrush(this.canvas);
+
+            // texturePatternBrush.clipTo = (ctx) => {
+            //     if (this.canvas.clipPath) {
+            //         this.canvas.clipPath.render(ctx);
+            //     }
+            // };
+
+            texturePatternBrush.source = img;
+            texturePatternBrush.width = 50
+            texturePatternBrush.limitedToCanvasSize = true
+
+            this.canvas.isDrawingMode = true
+            this.canvas.freeDrawingBrush = texturePatternBrush
+            // this.canvas.freeDrawingBrush.limitedToCanvasSize = true
+
+
+        }
+    }
+
+    brush() {
+        // const base64 = this.canvas.toDataURL()
+        // console.log(base64)
+        //
+        // let img = new Image();
+        // // img.src = base64;
+        // img.src = this.options.source
+        // this.canvas.isDrawingMode = true
+        // img.onload = () => {
+        //     let texturePatternBrush = new fabric.PatternBrush(this.canvas);
+        //     texturePatternBrush.source = img;
+        //     texturePatternBrush.width = 50;
+        //
+        //     this.canvas.freeDrawingBrush.globalCompositeOperation = "destination-out"
+        //     // this.canvas.globalCompositeOperation = 'source-out'
+        //     this.canvas.freeDrawingBrush = texturePatternBrush;
+        //     // this.canvas.freeDrawingBrush.limitedToCanvasSize = true;
+        //
+        //
+        // };
+    }
+
+
+
+
+
+
+
+
 }

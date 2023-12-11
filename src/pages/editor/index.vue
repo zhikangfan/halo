@@ -19,6 +19,9 @@
       <span id="zoomValue">0</span>
       <button @click="handleSmall">缩小</button>
       <button @click="handleMove">移动</button>
+      <button @click="handleManual">手动扣图</button>
+      <button @click="saveMode">保留</button>
+      <button @click="eraserMode">擦除</button>
     </div>
     <div ref="workspace" class="workspace">
       <canvas ref="canvas"></canvas>
@@ -71,7 +74,17 @@ export default {
     },
     handleMove() {
 
+    },
+    handleManual() {
+      this.editor.isDrawingMode = true
+    },
+    saveMode() {
+      this.editor.brush()
+    },
+    eraserMode() {
+
     }
+
   },
   mounted() {
 

@@ -16,6 +16,11 @@ const routes = [
         component: () => import('@/pages/editor')
     },
     {
+        path: '/editor2',
+        name: 'editor2',
+        component: () => import('@/pages/editor2')
+    },
+    {
         path: '*',
         name: 'NotFound',
         redirect: () => '/'

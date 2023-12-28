@@ -44,6 +44,78 @@ export class Editor {
         this._initResizeObserve()
         this.bindEvent()
         this._history()
+
+        this.test1()
+
+    }
+    extractWhitePath(img) {
+        var pathData = '';
+
+        // Convert image to data URL
+        var imageDataURL = 'http://localhost:8080/test2.jpg';
+        var image = new Image();
+        image.src = imageDataURL;
+        let that = this;
+
+        image.onload = () => {
+            // Draw the image on an off-screen canvas
+            var offScreenCanvas = document.createElement('canvas');
+            offScreenCanvas.width = image.width;
+            offScreenCanvas.height = image.height;
+            var ctx = offScreenCanvas.getContext('2d');
+            ctx.drawImage(image, 0, 0);
+
+            // Get image data from the off-screen canvas
+            var imageData = ctx.getImageData(0, 0, image.width, image.height);
+
+            // Process the image data and generate pathData
+            for (var i = 0; i < imageData.data.length; i += 4) {
+                var red = imageData.data[i];
+                var green = imageData.data[i + 1];
+                var blue = imageData.data[i + 2];
+
+                if (red === 255 && green === 255 && blue === 255) {
+                    var x = (i / 4) % image.width;
+                    var y = Math.floor((i / 4) / image.width);
+                    pathData += 'M' + x + ' ' + y + ' ';
+                }
+            }
+
+            // Create SVG path element
+            var path = new fabric.Path(pathData, {
+                fill: '',
+                stroke: 'purple',
+                strokeWidth: 2
+            });
+            console.log(path.path)
+            this.canvas.isDrawingMode = true;
+            this.canvas.freeDrawingBrush.color = 'purple';
+            this.canvas.freeDrawingBrush.width = 2;
+
+            this.canvas.freeDrawingBrush.path = path;
+            // Add the path to the canvas
+            this.canvas.add(path);
+            this.canvas.renderAll();
+        };
+    }
+    test1() {
+
+        // 加载图片到Canvas
+        // fabric.Image.fromURL('http://localhost:8080/test2.jpg', function(img) {
+        //     // 设置图片对象属性
+        //     img.set({
+        //         left: 0,
+        //         top: 0
+        //     });
+        //
+        //     // 将图片添加到Canvas
+        //     // this.canvas.add(img);
+        //
+        //     // 提取白色区域成路径
+        //     extractWhitePath(img);
+        // });
+
+        this.extractWhitePath()
     }
 
     /**
@@ -498,6 +570,16 @@ export class Editor {
         //
         //
         // };
+
+        this.canvas.isDrawingMode = true
+        this.canvas.freeDrawingBrush = new fabric.EraserBrush(this.canvas)
+        this.canvas.freeDrawingBrush.invoke = false
+        let initPath = this.canvas.freeDrawingBrush.createPath('M,58.99,53.99,Q,59,54,59.5,55,Q,60,56,62,58,Q,64,60,66.5,63,Q,69,66,72,68,Q,75,70,85.5,76.5,Q,96,83,107.5,88,Q,119,93,126.5,94.5,Q,134,96,145.5,97,L,157.01,98.01')
+        // initPath.set({
+        //     stroke: 'black'
+        // })
+        this.canvas.add(initPath)
+        this.canvas.renderAll()
     }
 
 

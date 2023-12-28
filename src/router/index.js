@@ -21,6 +21,21 @@ const routes = [
         component: () => import('@/pages/editor2')
     },
     {
+        path: '/editor3',
+        name: 'editor3',
+        component: () => import('@/pages/editor3')
+    },
+    {
+        path: '/test4',
+        name: 'test4',
+        component: () => import('@/pages/test4')
+    },
+    {
+        path: '/test5',
+        name: 'test5',
+        component: () => import('@/pages/test5')
+    },
+    {
         path: '*',
         name: 'NotFound',
         redirect: () => '/'

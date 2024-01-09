@@ -3,11 +3,9 @@ module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave: false,
     chainWebpack: config => {
-        config.module
-            .rule('wasm')
-            .test(/\.wasm$/)
-            .use('file-loader')
-            .loader('file-loader')
-            .end();
+      config.module.rule('worker').test(/\.worker\.js$/).use('worker-loader').loader('worker-loader').options({
+          inline: 'fallback',
+          filename: 'workerName.[hash].worker.js'
+      }).end()
     },
 })

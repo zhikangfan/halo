@@ -1,5 +1,5 @@
 
-const getFileSize = () => {
+const getFileSize = (param) => {
     return new Promise((resolve, reject) => {
         if (typeof param !== 'string' && !(param instanceof Blob)) {
             reject('Invalid parameter type. Expected string or Blob.')

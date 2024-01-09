@@ -1,11 +1,24 @@
 <template>
-
   <div>
-    <input type="text" id="input">
+    <input type="text" id="input" />
     <ul>
       <li>
         <router-link to="/editor">editor</router-link>
+      </li>
+      <li>
+        <router-link to="/editor2">editor</router-link>
+      </li>
+      <li>
         <router-link to="/editor3">editor</router-link>
+      </li>
+      <li>
+        <router-link to="/test4">editor</router-link>
+      </li>
+      <li>
+        <router-link to="/test5">editor</router-link>
+      </li>
+      <li>
+        <router-link to="/test6">下载处理方式</router-link>
       </li>
     </ul>
   </div>
@@ -13,20 +26,18 @@
 
 <script>
 export default {
-  name: 'HomePage',
+  name: "HomePage",
   data() {
-    return {
-
-    }
+    return {};
   },
   mounted() {
-    console.log('ok')
-    document.querySelector('#input').focus()
-    window.onbeforeunload = function (e) {
-      e.preventDefault()
-      e.returnValue = true;
-      return '作品还未保存或下载，是否要离开？'
-    }
-  }
-}
+    console.log("ok");
+    // document.querySelector("#input").focus();
+    // window.onbeforeunload = function (e) {
+    //   e.preventDefault();
+    //   e.returnValue = true;
+    //   return "作品还未保存或下载，是否要离开？";
+    // };
+  },
+};
 </script>

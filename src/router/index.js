@@ -36,6 +36,16 @@ const routes = [
         component: () => import('@/pages/test5')
     },
     {
+        path: '/test6',
+        name: 'test6',
+        component: () => import('@/pages/test6')
+    },
+    {
+        path: '/test7',
+        name: 'test7',
+        component: () => import('@/pages/test7')
+    },
+    {
         path: '*',
         name: 'NotFound',
         redirect: () => '/'

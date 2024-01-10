@@ -128,7 +128,7 @@ async function _getImg(src) {
     return new Promise((resolve, reject) => {
         let img = new Image();
         img.src = src;
-        img.crossorigin = 'anonymous'
+        img.crossOrigin = 'anonymous'
         img.onload = () => {
             resolve(img);
         };

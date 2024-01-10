@@ -128,7 +128,7 @@ export default {
 
     async save() {
       let zip = new JSZip()
-      let blob = await createImg('http://localhost:8080/test3.jpg', {
+      let blob = await createImg('https://images.pexels.com/photos/2174974/pexels-photo-2174974.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500', {
         width: 500,
         height: 500,
         ratio: 1,

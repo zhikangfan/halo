@@ -1,13 +1,16 @@
 <template>
   <div>
     <input type="file" @change="handleFileSelect">
-    <button @click="download">下载</button>
+    <button @click="save">下载</button>
     <canvas ref="canvas"></canvas>
   </div>
 </template>
 <script>
 
 import getFileSize from "../../utils/getFileInfo";
+import {createImg} from "@/pages/core";
+import JSZip from "jszip";
+import {saveAs} from 'file-saver'
 
 export default {
   name: 'Test7',
@@ -122,8 +125,24 @@ export default {
     //   a.download = `download.${type}`
     //   a.click()
     // }
+
+    async save() {
+      let zip = new JSZip()
+      let blob = await createImg('http://localhost:8080/test3.jpg', {
+        width: 500,
+        height: 500,
+        ratio: 1,
+        bgImg: '',
+        bgColor: 'rgba(255,0,0,1)'
+      })
+      zip.file(`test.png`, blob, {binary:true})
+      zip.generateAsync({type: 'blob'}).then(content => {
+        saveAs(content, 'test.zip')
+      })
+    }
   },
-  mounted() {
+  async mounted() {
+
 
   }
 
